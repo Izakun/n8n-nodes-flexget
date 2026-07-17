@@ -16,7 +16,7 @@ export class Flexget implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Flexget',
 		name: 'flexget',
-		icon: { light: 'file:flexget.svg', dark: 'file:flexget.svg' },
+		icon: { light: 'file:flexget.svg', dark: 'file:flexget.dark.svg' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
