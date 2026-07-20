@@ -21,32 +21,45 @@ export class FlexgetApi implements ICredentialType {
 			type: 'string',
 			default: 'http://flexget:5050',
 			required: true,
-			description: 'Base URL of the Flexget web/API server (e.g. http://flexget:5050). No trailing slash.',
+			description:
+				'Base URL of the Flexget web/API server (e.g. http://flexget:5050). No trailing slash.',
 		},
 		{
-			displayName: 'API Token',
-			name: 'apiToken',
+			displayName: 'Username',
+			name: 'username',
+			type: 'string',
+			default: 'flexget',
+			required: true,
+			description: 'Flexget web UI username (usually "flexget")',
+		},
+		{
+			displayName: 'Password',
+			name: 'password',
 			type: 'string',
 			typeOptions: { password: true },
 			default: '',
 			required: true,
-			description: 'Flexget API token (generate with "flexget web passwd")',
+			description: 'Flexget web UI password (set with "flexget web passwd")',
 		},
 	];
 
+	// Flexget's API authenticates with a session cookie obtained from
+	// POST /api/auth/login; the node performs that login, so there is no
+	// static header to inject here.
 	authenticate: IAuthenticateGeneric = {
 		type: 'generic',
-		properties: {
-			headers: {
-				Authorization: '={{$credentials.apiToken}}',
-			},
-		},
+		properties: {},
 	};
 
 	test: ICredentialTestRequest = {
 		request: {
+			method: 'POST',
 			baseURL: '={{$credentials.baseUrl}}',
-			url: '/api/server/version',
+			url: '/api/auth/login',
+			body: {
+				username: '={{$credentials.username}}',
+				password: '={{$credentials.password}}',
+			},
 		},
 	};
 }

@@ -12,6 +12,12 @@ import {
 	NodeOperationError,
 } from 'n8n-workflow';
 
+function cookieHeader(headers: IDataObject): string {
+	const raw = (headers ?? {})['set-cookie'];
+	const arr = Array.isArray(raw) ? raw : raw ? [String(raw)] : [];
+	return arr.map((c) => String(c).split(';')[0]).join('; ');
+}
+
 export class Flexget implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Flexget',
@@ -63,12 +69,24 @@ export class Flexget implements INodeType {
 				const param = <T>(name: string, fallback?: T) =>
 					this.getNodeParameter(name, i, fallback as T) as T;
 
+				// Flexget uses a session cookie: log in, then reuse the cookie.
+				const login = (await this.helpers.httpRequestWithAuthentication.call(this, 'flexgetApi', {
+					method: 'POST',
+					baseURL,
+					url: '/api/auth/login',
+					body: { username: credentials.username, password: credentials.password },
+					json: true,
+					returnFullResponse: true,
+				} as IHttpRequestOptions)) as { headers: IDataObject };
+				const cookie = cookieHeader(login.headers);
+
 				const request = (method: IHttpRequestMethods, url: string, body?: IDataObject) =>
 					this.helpers.httpRequestWithAuthentication.call(this, 'flexgetApi', {
 						method,
 						baseURL,
 						url,
 						body,
+						headers: { Cookie: cookie },
 						json: true,
 					} as IHttpRequestOptions);
 
